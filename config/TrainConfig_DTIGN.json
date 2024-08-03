@@ -1,0 +1,19 @@
+{
+    "train":
+    {
+        "model": "GIGN", 
+        "data_root" : "./data",
+        "ground_root": "./data/PARP1/pdb_with_activity/",
+        "save_dir" : "./results/benchmark_test",
+        "graph_type" : "Graph_DTIGN",
+        "fold" : 5,
+        "epochs" : 2000,
+        "batch_size" : 100,
+        "early_stop_epoch" : 200,
+        "dropout": 0,
+        "valid_metric": "pr",
+        "save_model": true, 
+        "create" : true,
+        "mark": null
+    }
+}
