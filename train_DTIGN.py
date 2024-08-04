@@ -159,7 +159,7 @@ if __name__ == '__main__':
     aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')  
     local_dir = './data/'
     data_fetcher = S3DataFetcher(aws_access_key_id, aws_secret_access_key, f's3://dtign/{protein_name}.zip')
-    data_fetcher.fetch_and_extract(local_dir)
+    data_fetcher.fetch_and_extract(local_dir, protein_name)
     graph_type = ['Graph_GIGN', 'Graph_DTIGN'][1] # GIGN is a baseline
     args['mark'] = f'{task_id}_{graph_type}_Pose_{num_pose}_Seed_{seed}_hidden_dim={hidden_dim}_lr={learning_rate}_val_num={val_num}-val_rate={val_rate}-patience={early_stop_epoch}-D_count={D_count}'
     DTIGN_datafold = './DTIGN-main/'
@@ -257,7 +257,7 @@ if __name__ == '__main__':
         running_best_metric = BestMeter(best_type)
         running_best_metric.reset
         # TODO: change to cuda later
-        device = torch.device('cpu') 
+        device = torch.device('cuda') 
         model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count).to(device)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=10**(-4.3))
         scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)

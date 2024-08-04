@@ -60,7 +60,7 @@ class DTIGN(nn.Module):
 #             self.lin_pocket = Linear(hidden_dim, hidden_dim)
 #             self.lin_semi = Linear(hidden_dim, hidden_dim)
     # TODO: change to cuda later
-    def forward(self, data=None, embedding = None, pocket_list=None, device = torch.device('cpu'), return_f=False, f_only=False, self_attention=False, semi_supervise=False, save_attention=False, graph_type='Graph_DTIGN'):
+    def forward(self, data=None, embedding = None, pocket_list=None, device = torch.device('cuda'), return_f=False, f_only=False, self_attention=False, semi_supervise=False, save_attention=False, graph_type='Graph_DTIGN'):
         if not f_only:
             init_x, edge_index_intra, edge_index_inter, pos = \
             data.x, data.edge_index_intra, data.edge_index_inter, data.pos

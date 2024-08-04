@@ -30,7 +30,7 @@ class S3DataFetcher:
             aws_secret_access_key=self.aws_secret_access_key
         )
 
-    def fetch_and_extract(self, local_dir):
+    def fetch_and_extract(self, local_dir, folder_name):
         """
         Fetches a zip file from S3, extracts it, and stores it locally.
         
@@ -39,17 +39,16 @@ class S3DataFetcher:
         # Ensure the local directory exists
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
-
+        extraction_path = os.path.join(local_dir, folder_name)
         # Check if the directory is empty
-        if os.listdir(local_dir):
-            print(f"Data already exists in {local_dir}, skipping download.")
+        if os.path.exists(extraction_path):
+            print(f"Data already exists in {extraction_path}, skipping download.")
             return
 
         # Local path to store the downloaded zip file
         local_zip_path = os.path.join(local_dir, 'data.zip')
 
         # Download the zip file from S3
-        print("self.s3_key: ", self.s3_key)
         self.s3_client.download_file(self.bucket_name, self.s3_key, local_zip_path)
 
         # Extract the zip file
