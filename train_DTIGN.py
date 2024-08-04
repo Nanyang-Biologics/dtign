@@ -143,12 +143,6 @@ if __name__ == '__main__':
     dropout = args.get("dropout")
     valid_metric = args.get("valid_metric")
     task_id = f"{arguments.setting}"
-    ### Aws setting
-    aws_access_key_id = os.getenv('AWS_ACCESS_KEY')
-    aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')  
-    local_dir = './data/'
-    data_fetcher = S3DataFetcher(aws_access_key_id, aws_secret_access_key, f's3://dtign/{task_id}.zip')
-    data_fetcher.fetch_and_extract(local_dir)
     ### Experimental settings
     start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 3, [], 3, 0, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.95, 100, 32
     args['start_checkpoint'] = None
@@ -160,6 +154,12 @@ if __name__ == '__main__':
                  'I3': ('CHEMBL333', 'pIC50', '1ck7', 6, 3), 'E1': ('CHEMBL3820', 'pEC50', '3f9m', 6, 3), 
                  'I2': ('CHEMBL3976', 'pIC50', '4ebb', 2, 4), 'E2': ('CHEMBL4422', 'pEC50', '5tzr', 3, 3)}
     protein_name, assay_type, pdb_name, pocket_num, num_pose = task_dict[task_id]
+    ### Aws setting
+    aws_access_key_id = os.getenv('AWS_ACCESS_KEY')
+    aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')  
+    local_dir = './data/'
+    data_fetcher = S3DataFetcher(aws_access_key_id, aws_secret_access_key, f's3://dtign/{protein_name}.zip')
+    data_fetcher.fetch_and_extract(local_dir)
     graph_type = ['Graph_GIGN', 'Graph_DTIGN'][1] # GIGN is a baseline
     args['mark'] = f'{task_id}_{graph_type}_Pose_{num_pose}_Seed_{seed}_hidden_dim={hidden_dim}_lr={learning_rate}_val_num={val_num}-val_rate={val_rate}-patience={early_stop_epoch}-D_count={D_count}'
     DTIGN_datafold = './DTIGN-main/'

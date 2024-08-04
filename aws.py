@@ -20,6 +20,7 @@ class S3DataFetcher:
         # Parse the S3 URI to get the bucket name and key
         parsed_url = urlparse(s3_uri)
         self.bucket_name = parsed_url.netloc
+        print("bucket_name: ", self.bucket_name)
         self.s3_key = parsed_url.path.lstrip('/')
 
         # Create the S3 client
@@ -48,6 +49,7 @@ class S3DataFetcher:
         local_zip_path = os.path.join(local_dir, 'data.zip')
 
         # Download the zip file from S3
+        print("self.s3_key: ", self.s3_key)
         self.s3_client.download_file(self.bucket_name, self.s3_key, local_zip_path)
 
         # Extract the zip file
