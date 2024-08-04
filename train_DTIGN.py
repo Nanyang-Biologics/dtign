@@ -10,6 +10,7 @@ import pandas as pd
 from utils import AverageMeter
 from DTIGN import DTIGN
 from config.config_dict import Config
+from aws import S3DataFetcher
 from log.train_logger import TrainLogger
 import numpy as np
 from utils import *
@@ -141,8 +142,14 @@ if __name__ == '__main__':
     folds = args.get("fold")
     dropout = args.get("dropout")
     valid_metric = args.get("valid_metric")
-    ### Experimental settings ###
     task_id = f"{arguments.setting}"
+    ### Aws setting
+    aws_access_key_id = os.getenv('AWS_ACCESS_KEY')
+    aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')  
+    local_dir = './data/'
+    data_fetcher = S3DataFetcher(aws_access_key_id, aws_secret_access_key, f's3://dtign/{task_id}.zip')
+    data_fetcher.fetch_and_extract(local_dir)
+    ### Experimental settings
     start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 3, [], 3, 0, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.95, 100, 32
     args['start_checkpoint'] = None
     semi_supervise = False

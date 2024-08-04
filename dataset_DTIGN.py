@@ -185,7 +185,6 @@ class GraphDataset(Dataset):
         data_dir = self.data_dir
         data_df = self.data_df
         graph_type = self.graph_type
-        pocket_num = len(os.listdir(data_dir))
 
         complex_path_list, complex_id_list, pIC50_list, score_list, graph_path_list, dis_threshold_list = [], [], [], [], [], []
         file_list = os.listdir(data_dir)
