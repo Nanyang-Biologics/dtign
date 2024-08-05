@@ -52,6 +52,8 @@ class HIL(MessagePassing):
         radial_ncov = self.mlp_coord_ncov(rbf_ncov)
         out_node_inter = self.propagate(edge_index=edge_index_inter, x=x, edge_attr=torch.empty(0), radial=radial_ncov, size=size)
         out_node = self.mlp_node_cov(x + out_node_intra) + self.mlp_node_ncov(x + out_node_inter)
+        ## ablation study
+        # out_node = self.mlp_node_cov(x + out_node_intra) + self.mlp_node_ncov(x + out_node_inter)
 
         return out_node
 
