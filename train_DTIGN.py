@@ -144,7 +144,18 @@ if __name__ == '__main__':
     valid_metric = args.get("valid_metric")
     task_id = f"{arguments.setting}"
     ### Experimental settings
-    start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 3, [], 3, 0, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.95, 100, 32
+    if task_id == 'I1':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 2, [3], 4, 40, 1, 0, 1e-4
+    if task_id == 'I2':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed = 1, [], 5, 40, 1, 0
+    if task_id == 'I3':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 0.9, 2, 8e-5, 100, 50, 5, 10, 0.975, 100, 32, 4
+    if task_id == 'I4':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32
+    if task_id == 'E1':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 0.9, 2, 8e-5, 100, 50, 5, 10, 0.975, 100, 32, 4
+    if task_id == 'E2':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed = 1, [], 5, 40, 1, 0
     args['start_checkpoint'] = None
     semi_supervise = False
     save_attention = False
@@ -258,7 +269,10 @@ if __name__ == '__main__':
         running_best_metric.reset
         # TODO: change to cuda later
         device = torch.device('cuda') 
-        model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count).to(device)
+        if num_heads:
+            model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count, num_heads=num_heads).to(device)
+        else:
+            model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count).to(device)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=10**(-4.3))
         scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
         model.train()

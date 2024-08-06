@@ -75,21 +75,21 @@ class DTIGN(nn.Module):
                 embedding_list, supervised_embedding_list = group_pocket(pocket_list, embeddings, device)
                 embeddings, attn_output_weights, pose_attn_output_weights, pocket_supervised_loss, loss_counter = torch.tensor([]).to(device), [], [], 0, 0
                 ## disable self-attention to replicate ablation
-#                 for i, embedding in enumerate(embedding_list):
-#                     attn_output, attn_output_weight = self.self_attention_pocket(embedding, embedding, embedding) # (7,256) (7,7)
-#                     attn_output_weights.append(attn_output_weight)
-#                     residual_output = self.dropout(attn_output) + embedding
-#                     residual_output = residual_output.sum(dim=0, keepdim=True)
-#                     temp_embeddings = residual_output
-# #                     temp_embeddings = self.lin_pocket(residual_output)
-#                     supervised_embedding = supervised_embedding_list[i]
-#                     if supervised_embedding.numel() != 0 and semi_supervise:
-#                         reduced_supervised_embedding = supervised_embedding.sum(dim=0, keepdim=True)
-#                         pocket_supervised_loss += 1 - F.cosine_similarity(temp_embeddings, reduced_supervised_embedding, dim=1)
-#                         temp_embeddings = torch.cat((temp_embeddings, supervised_embedding), dim=0)
-#                         loss_counter += 1
-#                     embeddings = torch.cat((embeddings, temp_embeddings), dim=0)
-#                 pocket_supervised_loss = pocket_supervised_loss/(loss_counter+1e-9)
+                for i, embedding in enumerate(embedding_list):
+                    attn_output, attn_output_weight = self.self_attention_pocket(embedding, embedding, embedding) # (7,256) (7,7)
+                    attn_output_weights.append(attn_output_weight)
+                    residual_output = self.dropout(attn_output) + embedding
+                    residual_output = residual_output.sum(dim=0, keepdim=True)
+                    temp_embeddings = residual_output
+#                     temp_embeddings = self.lin_pocket(residual_output)
+                    supervised_embedding = supervised_embedding_list[i]
+                    if supervised_embedding.numel() != 0 and semi_supervise:
+                        reduced_supervised_embedding = supervised_embedding.sum(dim=0, keepdim=True)
+                        pocket_supervised_loss += 1 - F.cosine_similarity(temp_embeddings, reduced_supervised_embedding, dim=1)
+                        temp_embeddings = torch.cat((temp_embeddings, supervised_embedding), dim=0)
+                        loss_counter += 1
+                    embeddings = torch.cat((embeddings, temp_embeddings), dim=0)
+                pocket_supervised_loss = pocket_supervised_loss/(loss_counter+1e-9)
                 if return_f:
                     return embeddings
                 x = self.fc(embeddings)
