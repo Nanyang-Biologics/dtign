@@ -274,10 +274,7 @@ if __name__ == '__main__':
         running_best_metric.reset
         # TODO: change to cuda later
         device = torch.device('cuda') 
-        if num_heads != 8:
-            model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count, num_heads=num_heads).to(device)
-        else:
-            model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count).to(device)
+        model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count).to(device)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=10**(-4.3))
         scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
         model.train()
