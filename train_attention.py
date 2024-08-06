@@ -1,19 +1,19 @@
 
 # %%
 import os, re
-import argparse
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 import torch
+import argparse
 import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
 from utils import AverageMeter
-from DTIGN import DTIGN
+from GIGN import GIGN
 from config.config_dict import Config
-from aws import S3DataFetcher
 from log.train_logger import TrainLogger
 import numpy as np
 from utils import *
+from aws import S3DataFetcher
 from sklearn.metrics import mean_squared_error
 from itertools import zip_longest, cycle
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -122,13 +122,11 @@ def flatten(lst):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a model with specified settings.')
     parser.add_argument('--setting', type=str, required=True, help='The setting for the training session')
-
     # Parse the arguments
     arguments = parser.parse_args()
-
     # Print the received setting
     print(f"Training model with setting: {arguments.setting}")
-    cfg = 'TrainConfig_DTIGN'
+    cfg = 'TrainConfig_GIGN'
     config = Config(cfg)
     args = config.get_config()
     graph_type = args.get("graph_type")
@@ -142,65 +140,60 @@ if __name__ == '__main__':
     folds = args.get("fold")
     dropout = args.get("dropout")
     valid_metric = args.get("valid_metric")
+    ### Experimental settings ###
     task_id = f"{arguments.setting}"
-    ### Experimental settings
-    # start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 3, [], 3, 0, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.95, 100, 32
-    if task_id == 'I1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 2, [3], 4, 40, 1, 0, 1e-4, 128, 100, 5, 10, 0.95, 100, 32, 8
-    if task_id == 'I2':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 128, 1, 5, 10, 0.95, 100, 32, 8
-    if task_id == 'I3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 0.9, 2, 8e-5, 100, 50, 5, 10, 0.975, 100, 32, 4
-    if task_id == 'I4':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 4
-    if task_id == 'I5':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 4
-    if task_id == 'E1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 0.9, 2, 8e-5, 100, 50, 5, 10, 0.975, 100, 32, 4
-    if task_id == 'E2':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads  = 1, [], 5, 40, 1, 0, 1e-4, 128, 1, 5, 10, 0.95, 100, 64, 4
-    if task_id == 'E3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 4
+    start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 2, [3], 4, 40, 1, 0, 1e-4
     args['start_checkpoint'] = None
-    semi_supervise = False
-    save_attention = False
+    semi_supervise = True
+    save_attention = True
     create = False
-    task_dict = {'I1': ('CHEMBL202', 'pIC50', '1boz', 7, 1), 'E3': ('CHEMBL235', 'pEC50', '1zgy', 4, 3), 
-                 'I5': ('CHEMBL279', 'pIC50', '1ywn',3, 4), 'I4': ('CHEMBL2971', 'pIC50', '3ugc', 3, 4), 
-                 'I3': ('CHEMBL333', 'pIC50', '1ck7', 6, 3), 'E1': ('CHEMBL3820', 'pEC50', '3f9m', 6, 3), 
-                 'I2': ('CHEMBL3976', 'pIC50', '4ebb', 2, 4), 'E2': ('CHEMBL4422', 'pEC50', '5tzr', 3, 3)}
+    task_dict = {'I1': ('CHEMBL202', 'pIC50', '1boz', 7, 1), 'E3': ('CHEMBL235', 'pEC50', '1zgy', 4, 6), 
+                 'I5': ('CHEMBL279', 'pIC50', '1ywn',3, 4), 'I4': ('CHEMBL2971', 'pIC50', '3ugc', 3, 5), 
+                 'I3': ('CHEMBL333', 'pIC50', '1ck7', 6, 1), 'E1': ('CHEMBL3820', 'pEC50', '3f9m', 6 ,2), 
+                 'I2': ('CHEMBL3976', 'pIC50', '4ebb', 2, 4), 'E2': ('CHEMBL4422', 'pEC50', '5tzr', 3, 2)}
     protein_name, assay_type, pdb_name, pocket_num, num_pose = task_dict[task_id]
-    ### Aws setting
-    aws_access_key_id = os.getenv('AWS_ACCESS_KEY')
-    aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')  
-    local_dir = './data/'
-    data_fetcher = S3DataFetcher(aws_access_key_id, aws_secret_access_key, f's3://dtign/{protein_name}.zip')
-    data_fetcher.fetch_and_extract(local_dir, protein_name)
-    graph_type = ['Graph_GIGN', 'Graph_DTIGN'][1] # GIGN is a baseline
-    args['mark'] = f'{task_id}_{graph_type}_Pose_{num_pose}_Seed_{seed}_hidden_dim={hidden_dim}_lr={learning_rate}_val_num={val_num}-val_rate={val_rate}-patience={early_stop_epoch}-D_count={D_count}'
-    DTIGN_datafold = './DTIGN-main/'
+    graph_type = ['Graph_GIGN', 'Graph_Bond'][1]
+    args['mark'] = f'{task_id}_{graph_type}_Pose_{num_pose}_Seed_{seed}_Attention_physics_D_count=64_rbf_power_reverse'
+    GIGN_datafold = '/home/yueming/Drug_Discovery/Baselines/GIGN-main/GIGN'
     #############################
-    batch_size = round(total_batch_size/(pocket_num * num_pose * subset_num)) # 4+1 training subsets
+    batch_size = round(0.25 * total_batch_size/(pocket_num * num_pose)) # 4 training subsets
     if semi_supervise:
         args['mark'] += '_semi_sum'
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     args['save_dir'] = args.get('save_dir') + '/' + timestamp + '_' + args['mark'] + '/'
-    # args['save_dir'] = '/home1/yueming/Drug_Discovery/Baselines/DTIGN-main/DTIGN/model/20231023_174735_I3_Graph_DTIGN_Pose_3_Seed_0_hidden_dim=128_lr=8e-05_val_num=100/'
+#     args['save_dir'] = '/home/yueming/Drug_Discovery/Baselines/GIGN-main/GIGN/model/20230727_200655_I1_Graph_Bond_Pose_1_Seed_0_Attention_linear_physics*/'
     data_root = f'{data_root}/{protein_name}'
     target_pdb = f'{pdb_name}/vina'
     torch.manual_seed(seed)
     np.random.seed(seed)
-    # args['start_checkpoint'] = "/home1/yueming/Drug_Discovery/Baselines/DTIGN-main/DTIGN/model/20231023_174735_I3_Graph_DTIGN_Pose_3_Seed_0_hidden_dim=128_lr=8e-05_val_num=100/20231024_035351_DTIGN_fold_2_I3_Graph_DTIGN_Pose_3_Seed_0_hidden_dim=128_lr=8e-05_val_num=100/model/Current, epoch-145, mean-5.9069, std-1.6443, train_loss-1.1164, train_rmse-1.0566, valid_rmse-1.2527, valid_pr-0.8965, valid_tau-0.6822, test_rmse-1.5209, test_pr-0.4157, test_tau-0.2482.pt"
-    # args['best_checkpoint'] = "/home1/yueming/Drug_Discovery/Baselines/DTIGN-main/DTIGN/model/20231023_174735_I3_Graph_DTIGN_Pose_3_Seed_0_hidden_dim=128_lr=8e-05_val_num=100/20231024_035351_DTIGN_fold_2_I3_Graph_DTIGN_Pose_3_Seed_0_hidden_dim=128_lr=8e-05_val_num=100/model/Best, epoch-144, mean-5.9069, std-1.6443, train_loss-1.0740, train_rmse-1.0364, valid_rmse-1.0430, valid_pr-0.9294, valid_tau-0.7125, test_rmse-1.5384, test_pr-0.3526, test_tau-0.2160.pt"
-    if graph_type == 'Graph_DTIGN':
+#     args['start_checkpoint'] = "./model/20230613_102821_GIGN_fold_2_reweight/model/Best, epoch-41, mean-5.7254, std-1.2432, train_loss-0.2112, train_rmse-0.4596, valid_rmse-1.0741, valid_pr-0.3733, valid_tau-0.2560.pt"
+#     args['best_checkpoint'] = "./model/20230613_102821_GIGN_fold_2_reweight/model/Best, epoch-41, mean-5.7254, std-1.2432, train_loss-0.2112, train_rmse-0.4596, valid_rmse-1.0741, valid_pr-0.3733, valid_tau-0.2560.pt"
+    if graph_type == 'Graph_Bond':
         if semi_supervise:
-            from dataset_DTIGN_semi_supervised_bond import GraphDataset, PLIDataLoader
+            from dataset_GIGN_semi_supervised_bond import GraphDataset, PLIDataLoader
         else:
-            from dataset_DTIGN import GraphDataset, PLIDataLoader
+            from dataset_GIGN_packaged_bond import GraphDataset, PLIDataLoader
     elif semi_supervise:
-        from dataset_DTIGN_semi_supervised import GraphDataset, PLIDataLoader
+        from dataset_GIGN_semi_supervised import GraphDataset, PLIDataLoader
     else:
-        from dataset_DTIGN_packaged import GraphDataset, PLIDataLoader
+        from dataset_GIGN_packaged import GraphDataset, PLIDataLoader
+    
+    train_set_list_all, train_loader_list_all = [], []
+    for fold in range(folds):
+        train_dir = os.path.join(data_root, target_pdb, f'train_{fold+1}')
+        ground_dir = os.path.join(ground_root, f'train_{fold+1}')
+        train_df = pd.read_csv(os.path.join(data_root, target_pdb, f'{protein_name}_{assay_type}_train_{fold+1}.csv'))
+        train_set = GraphDataset(train_dir, ground_dir, train_df, GIGN_datafold=GIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create) if semi_supervise else GraphDataset(train_dir, train_df, GIGN_datafold=GIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create)
+        train_loader = PLIDataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=0)
+        train_set_list_all.append(train_set)
+        train_loader_list_all.append(train_loader)
+       
+    test_dir = os.path.join(data_root, target_pdb, 'test')
+    ground_dir = os.path.join(ground_root, 'test')
+    test_df = pd.read_csv(os.path.join(data_root, target_pdb, f'{protein_name}_{assay_type}_test.csv'))
+    test_set = GraphDataset(test_dir, ground_dir, test_df, GIGN_datafold=GIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create) if semi_supervise else GraphDataset(test_dir, test_df, GIGN_datafold=GIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create)
+    test_loader = PLIDataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=0)
+    criterion = nn.MSELoss(reduction='none')
     
     for fold in range(folds):
         args['fold'] = fold + start_fold
@@ -208,57 +201,28 @@ if __name__ == '__main__':
             break
         if args['fold'] in skip_fold:
             continue
-        train_set_list_all, train_loader_list_all = [], []
-        for fold_temp in range(folds):
-            set_name = f'train_{fold_temp+1}'
-            train_dir = os.path.join(data_root, target_pdb, set_name)
-            ground_dir = os.path.join(ground_root, set_name)
-            train_df = pd.read_csv(os.path.join(data_root, target_pdb, f'{protein_name}_{assay_type}_{set_name}.csv'))
-            if fold_temp == args['fold']-1:
-                val_to_train_dir = train_dir
-                val_to_train_df = train_df.sample(n=len(train_df)-val_num,random_state=seed)
-                train_df = train_df.drop(val_to_train_df.index)
-                train_df = train_df.reset_index(drop=True)
-                val_to_train_df = val_to_train_df.reset_index(drop=True)
-            train_set = GraphDataset(train_dir, ground_dir, train_df, run_datafold=DTIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create) if semi_supervise else GraphDataset(train_dir, train_df, run_datafold=DTIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create)
-            train_loader = PLIDataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=0)
-            train_set_list_all.append(train_set)
-            train_loader_list_all.append(train_loader)
-
-        val_to_train_set = GraphDataset(val_to_train_dir, ground_dir, val_to_train_df, run_datafold=DTIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create) if semi_supervise else GraphDataset(val_to_train_dir, val_to_train_df, run_datafold=DTIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create)
-        val_to_train_loader = PLIDataLoader(val_to_train_set, batch_size=batch_size, shuffle=True, num_workers=0)
-        train_set_list_all.append(val_to_train_set)
-        train_loader_list_all.append(val_to_train_loader)
-        
-        test_dir = os.path.join(data_root, target_pdb, 'test')
-        ground_dir = os.path.join(ground_root, 'test')
-        test_df = pd.read_csv(os.path.join(data_root, target_pdb, f'{protein_name}_{assay_type}_test.csv'))
-        test_set = GraphDataset(test_dir, ground_dir, test_df, run_datafold=DTIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create) if semi_supervise else GraphDataset(test_dir, test_df, run_datafold=DTIGN_datafold, num_pose=num_pose, graph_type=graph_type, assay_type=assay_type, create=create)
-        test_loader = PLIDataLoader(test_set, batch_size=subset_num*batch_size, shuffle=False, num_workers=0)
-        criterion = nn.MSELoss(reduction='none')
-    
         train_set_list, train_loader_list = train_set_list_all.copy(), train_loader_list_all.copy()
         valid_set, valid_loader = train_set_list[args['fold']-1], train_loader_list[args['fold']-1]
         train_set_list.pop(args['fold']-1)
         train_loader_list.pop(args['fold']-1)
-        train_set1, train_set2, train_set3, train_set4, val_to_train_set = tuple(train_set_list)
-        train_loader1, train_loader2, train_loader3, train_loader4, val_to_train_loader = tuple(train_loader_list)
+        train_set1, train_set2, train_set3, train_set4 = tuple(train_set_list)
+        train_loader1, train_loader2, train_loader3, train_loader4 = tuple(train_loader_list)
         
         logger = TrainLogger(args, cfg, create=True)
         logger.info(__file__)
         logger.info(f"fold: {args['fold']}")
-        logger.info(f"train data: {len(train_set1)+len(train_set2)+len(train_set3)+len(train_set4)+len(val_to_train_set)}")
-        logger.info(f"train data subsets: {len(train_set1)}, {len(train_set2)}, {len(train_set3)}, {len(train_set4)}, {len(val_to_train_set)}")
+        logger.info(f"train data: {len(train_set1)+len(train_set2)+len(train_set3)+len(train_set4)}")
+        logger.info(f"train data subsets: {len(train_set1)}, {len(train_set2)}, {len(train_set3)}, {len(train_set4)}")
         logger.info(f"valid data: {len(valid_set)}")
         logger.info(f"test data: {len(test_set)}")
-        logger.info(f"batch ligands: {subset_num*batch_size}") # 4 training subsets
+        logger.info(f"batch ligands: {4*batch_size}") # 4 training subsets
         logger.info(f"pockets/ligand: {pocket_num}")
         logger.info(f"poses/pocket: {num_pose}")
-        logger.info(f"batch samples: {subset_num*batch_size*pocket_num*num_pose}")
+        logger.info(f"batch samples: {4*batch_size*pocket_num*num_pose}")
         shutil.copy(__file__, logger.get_log_dir())
         result_path = os.path.join(logger.get_model_dir()[:-5], 'result')
         # 获取源文件名
-        source_file_list = ["DTIGN.py", "DTIGN_HIL.py"]
+        source_file_list = ["GIGN.py", "HIL.py"]
         for source_file in source_file_list:
             # 构建源文件的完整路径
             source_path = os.path.join(os.path.dirname(__file__), source_file)
@@ -272,16 +236,9 @@ if __name__ == '__main__':
         best_type = "min" if valid_metric == "rmse" else "max"
         running_best_metric = BestMeter(best_type)
         running_best_metric.reset
-        # TODO: change to cuda later
-        device = torch.device('cuda') 
-        if num_heads != 8:
-            model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count, num_heads=num_heads).to(device)
-        else:
-            model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count).to(device)
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=10**(-4.3))
-        scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
-        model.train()
         
+        device = torch.device('cuda:0')
+        model = GIGN(node_dim=35, bond_dim=10, hidden_dim=256, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type).to(device)
         if args['start_checkpoint'] is not None:
             best_model_list.append(args['best_checkpoint'])
             load_model_dict(model, args['start_checkpoint'])
@@ -296,29 +253,18 @@ if __name__ == '__main__':
             if ckpt_epoch != best_epoch:
                 current_model_list.append(args['start_checkpoint'])
             count = running_best_metric.counter(interval = ckpt_epoch - best_epoch)
-            if save_attention:
-                # Load data from train_attentions.pickle
-                with open(result_path + '/train_attentions.pickle', 'rb') as train_file:
-                    train_attention_dict = pickle.load(train_file)
-                # Load data from val_attentions.pickle
-                with open(result_path + '/val_attentions.pickle', 'rb') as val_file:
-                    val_attention_dict = pickle.load(val_file)
-                # Load data from test_attentions.pickle
-                with open(result_path + '/test_attentions.pickle', 'rb') as test_file:
-                    test_attention_dict = pickle.load(test_file)
-            else:
-                train_attention_dict, val_attention_dict, test_attention_dict = {}, {}, {}
-            scheduler_steps = int(ckpt_epoch / step_size)
-            for _ in range(scheduler_steps):
-                scheduler.step()
         else:
             start_epoch = 0
             responsible_dict, weight_dict, uncertainty_dict = {}, {}, {}
         
-        train_loaders = [train_loader1, train_loader2, train_loader3, train_loader4, val_to_train_loader]
-        sample_counts = [len(dataset) for dataset in [train_set1, train_set2, train_set3, train_set4, val_to_train_set]]
-        sample_means = [dataset.mean for dataset in [train_set1, train_set2, train_set3, train_set4, val_to_train_set]]
-        sample_stds = [dataset.std for dataset in [train_set1, train_set2, train_set3, train_set4, val_to_train_set]]
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=10**(-4.3))
+        scheduler = StepLR(optimizer, step_size=10, gamma=0.95)
+        model.train()
+        train_loaders = [train_loader1, train_loader2, train_loader3, train_loader4]
+        
+        sample_counts = [len(dataset) for dataset in [train_set1, train_set2, train_set3, train_set4]]
+        sample_means = [dataset.mean for dataset in [train_set1, train_set2, train_set3, train_set4]]
+        sample_stds = [dataset.std for dataset in [train_set1, train_set2, train_set3, train_set4]]
         total_count = sum(sample_counts)
         # 计算加权平均的均值
         weighted_mean = sum(count * mean for count, mean in zip(sample_counts, sample_means)) / total_count
@@ -329,12 +275,12 @@ if __name__ == '__main__':
         logger.info(f"train std: {'{:.4f}'.format(weighted_std)}")
         logger.info(f"valid_metric: {valid_metric}")
         
-        loader_list = [train_loader1, train_loader2, train_loader3, train_loader4, val_to_train_loader]
+        loader_list = [train_loader1, train_loader2, train_loader3, train_loader4]
         train_attention_dict, val_attention_dict, test_attention_dict = {}, {}, {}
         for ep in range(epochs - start_epoch):
             epoch = ep + start_epoch
-            for data1, data2, data3, data4, data5 in tqdm(zip_longest(train_loader1, train_loader2, train_loader3, train_loader4, val_to_train_loader)):
-                all_data_list = [data1, data2, data3, data4, data5]
+            for data1, data2, data3, data4 in tqdm(zip_longest(train_loader1, train_loader2, train_loader3, train_loader4)):
+                all_data_list = [data1, data2, data3, data4]
                 data_list = []
                 for i, data_ in enumerate(all_data_list):
                     if not data_:
@@ -392,19 +338,10 @@ if __name__ == '__main__':
             best_condition = (valid_metric_value < running_best_metric.get_best()) if best_type == "min" else (valid_metric_value > running_best_metric.get_best())
             msg = "epoch-%d, mean-%.4f, std-%.4f, train_loss-%.4f, train_rmse-%.4f, valid_rmse-%.4f, valid_pr-%.4f, valid_tau-%.4f, test_rmse-%.4f, test_pr-%.4f, test_tau-%.4f" \
             % (epoch, weighted_mean, weighted_std, epoch_loss, epoch_rmse, valid_rmse, valid_pr, valid_tau, test_rmse, test_pr, test_tau)
-            print("best_condition: ", best_condition)
-            print("warmup_epoch: ", warmup_epoch)
-            print("save_model: ", save_model)
-            print("valid_rmse: ", valid_rmse)
-            print("best_type: ", best_type)
-            print("valid_pr: ", valid_pr)
-            print("valid_metric_value: ", valid_metric_value)
-            print("running_best_metric.get_best(): ", running_best_metric.get_best())
             if best_condition and epoch >= warmup_epoch:
                 running_best_metric.update(valid_metric_value)
                 if save_model:
                     model_path = os.path.join(logger.get_model_dir(), 'Best, ' + msg + '.pt')
-                    print("model_path: ", model_path)
                     best_model_list.append(model_path)
                     save_model_dict(model, logger.get_model_dir(), 'Best, ' + msg)
                     if best_model_list[-2] is not None:
@@ -424,7 +361,6 @@ if __name__ == '__main__':
                     break
 
         # final testing
-        print("best_model_list: ", best_model_list)
         load_model_dict(model, best_model_list[-1])
         valid_rmse, valid_pr, valid_tau, val_attention_dict = val(model, valid_loader, device, epoch, val_attention_dict, save_attention=save_attention)
         test_rmse, test_pr, test_tau, test_attention_dict = val(model, test_loader, device, epoch, test_attention_dict, save_attention=save_attention)
