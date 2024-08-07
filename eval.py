@@ -47,11 +47,11 @@ def val(model, dataloader, device):
                 if idx not in predict_dict:
                     predict_dict[idx] = []  
                 else:
-                    predict_dict[idx].append(pred[i].detach().cpu().item())
+                    predict_dict[idx].append(pred[i].detach().gpu().item())
                 if idx not in label_dict:
                     label_dict[idx] = []  
                 else:
-                    label_dict[idx].append(label[i].detach().cpu().item())
+                    label_dict[idx].append(label[i].detach().gpu().item())
                     
     for key, pred in predict_dict.items():
         mean_pred = sum(pred) / len(pred)

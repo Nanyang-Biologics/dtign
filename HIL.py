@@ -64,21 +64,21 @@ class HIL(MessagePassing):
             distance_ncov = torch.norm(coord_diff_ncov, dim=-1)
             rbf_ncov = _rbf(distance_ncov, D_min=0., D_max=6., D_count=9, GIGN=True, device=x.device)
         radial_ncov = self.mlp_coord_ncov(rbf_ncov)
-        out_node_inter = self.propagate(edge_index=edge_index_inter, x=x, edge_attr=None, radial=radial_ncov, size=size)
+        out_node_inter = self.propagate(edge_index=edge_index_inter, x=x, edge_attr=torch.empty(0, device='cuda'), radial=radial_ncov, size=size)
         out_node = self.mlp_node_cov(x + out_node_intra) + self.mlp_node_ncov(x + out_node_inter)
 
         return out_node
 
     def message(self, x_j: Tensor, x_i: Tensor, radial,
                 index: Tensor, edge_attr: Tensor):
-        if edge_attr is not None:
+        if edge_attr is not None and edge_attr.numel() > 0:
             x = self.mlp_neighbour(torch.cat((x_j, edge_attr), dim=-1)) * radial
         else:
             x = x_j * radial
         return x
     
     
-def _rbf(D, D_min=1., D_max=6., D_count=16, power=1, GIGN=False, device='cpu'):
+def _rbf(D, D_min=1., D_max=6., D_count=16, power=1, GIGN=False, device='cuda'):
     '''
     From https://github.com/jingraham/neurips19-graph-protein-design
     

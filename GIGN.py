@@ -60,7 +60,7 @@ class GIGN(nn.Module):
 #             self.lin_pocket = Linear(hidden_dim, hidden_dim)
 #             self.lin_semi = Linear(hidden_dim, hidden_dim)
 
-    def forward(self, data=None, embedding = None, pocket_list=None, device = torch.device('cuda:0'), return_f=False, f_only=False, self_attention=False, semi_supervise=False, save_attention=False, graph_type='Graph_Bond'):
+    def forward(self, data=None, embedding = None, pocket_list=None, device = torch.device('cuda'), return_f=False, f_only=False, self_attention=False, semi_supervise=False, save_attention=False, graph_type='Graph_Bond'):
         if not f_only:
             init_x, edge_index_intra, edge_index_inter, pos = \
             data.x, data.edge_index_intra, data.edge_index_inter, data.pos

@@ -66,7 +66,7 @@ class HIL(MessagePassing):
         return x
     
     
-def _rbf(D, D_min=1., D_max=6., D_count=16, power=1, GIGN=False, device='cpu'):
+def _rbf(D, D_min=1., D_max=6., D_count=16, power=1, GIGN=False, device='cuda'):
     '''
     From https://github.com/jingraham/neurips19-graph-protein-design
     

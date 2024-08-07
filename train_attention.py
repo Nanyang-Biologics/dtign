@@ -144,8 +144,8 @@ if __name__ == '__main__':
     task_id = f"{arguments.setting}"
     start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 2, [3], 4, 40, 1, 0, 1e-4
     args['start_checkpoint'] = None
-    semi_supervise = True
-    save_attention = True
+    semi_supervise = False
+    save_attention = False
     create = False
     task_dict = {'I1': ('CHEMBL202', 'pIC50', '1boz', 7, 1), 'E3': ('CHEMBL235', 'pEC50', '1zgy', 4, 6), 
                  'I5': ('CHEMBL279', 'pIC50', '1ywn',3, 4), 'I4': ('CHEMBL2971', 'pIC50', '3ugc', 3, 5), 
@@ -179,6 +179,7 @@ if __name__ == '__main__':
         from dataset_GIGN_packaged import GraphDataset, PLIDataLoader
     
     train_set_list_all, train_loader_list_all = [], []
+    print("len folds: ", folds)
     for fold in range(folds):
         train_dir = os.path.join(data_root, target_pdb, f'train_{fold+1}')
         ground_dir = os.path.join(ground_root, f'train_{fold+1}')
