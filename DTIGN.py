@@ -51,6 +51,8 @@ class DTIGN(nn.Module):
         self.hidden_dim = hidden_dim
         self.num_pose = num_pose
         self.lin_bond = nn.Sequential(Linear(bond_dim, hidden_dim), nn.SiLU())
+        print("hidden_dim: ", hidden_dim)
+        print("num_heads: ", num_heads)
         if self_attention:
             self.self_attention_pose = nn.MultiheadAttention(embed_dim=hidden_dim, num_heads=num_heads, dropout=attention_dropout)
             self.self_attention_pocket = nn.MultiheadAttention(embed_dim=hidden_dim, num_heads=num_heads, dropout=attention_dropout)

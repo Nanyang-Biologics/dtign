@@ -150,13 +150,13 @@ if __name__ == '__main__':
     if task_id == 'I2':
         start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 128, 1, 5, 10, 0.95, 100, 32, 8
     if task_id == 'I3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 0.9, 2, 8e-5, 100, 50, 5, 10, 0.975, 100, 32, 4
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 1, [], 1, 40, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.975, 100, 32
     if task_id == 'I4':
         start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 4
     if task_id == 'I5':
         start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 4
     if task_id == 'E1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 0.9, 2, 8e-5, 100, 50, 5, 10, 0.975, 100, 32, 4
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 0.9, 2, 8e-5, 128, 50, 5, 10, 0.975, 100, 32, 4
     if task_id == 'E2':
         start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads  = 1, [], 5, 40, 1, 0, 1e-4, 128, 1, 5, 10, 0.95, 100, 64, 4
     if task_id == 'E3':

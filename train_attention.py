@@ -142,7 +142,16 @@ if __name__ == '__main__':
     valid_metric = args.get("valid_metric")
     ### Experimental settings ###
     task_id = f"{arguments.setting}"
-    start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 2, [3], 4, 40, 1, 0, 1e-4
+    if task_id == 'I1':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 1, [], 5, 40, 1, 0, 1e-4
+    if task_id == 'I2':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 1, [], 5, 40, 1, 0, 1e-4
+    if task_id == 'I5':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 1, [4], 5, 40, 1, 0, 1e-4
+    if task_id == 'E2':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 1, [], 5, 40, 1, 0, 1e-4
+    if task_id == 'E3':
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate = 1, [], 1, 40, 1, 0, 1e-4
     args['start_checkpoint'] = None
     semi_supervise = False
     save_attention = False
