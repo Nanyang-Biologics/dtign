@@ -11,6 +11,33 @@ def create_dir(dir_list):
         if not os.path.exists(d):
             os.makedirs(d)
 
+def delta_weight(x, c):
+    if x == 0:
+        return 1
+    elif x < c:
+        return 1 - math.sqrt(1 - ((x - c) / c) ** 2)
+    elif x == c: 
+        return 0
+    elif x < 2 * c: 
+        return math.sqrt(1 - ((x - c) / c) ** 2) - 1
+    else: 
+        return -1
+
+
+
+def flatten(lst):
+    flattened = []
+    for item in lst:
+        if isinstance(item, list):
+            flattened.extend(flatten(item))
+        else:
+            flattened.append(item)
+    return flattened
+
+def standardize(x, mean, std, device, reverse=True):
+    mean, std = torch.tensor(mean).to(device), torch.tensor(std).to(device)
+    return x * (std+1e-9) + mean if reverse else (x - mean)/(std+1e-9) 
+
 def save_model_dict(model, model_dir, msg):
     model_path = os.path.join(model_dir, msg + '.pt')
     torch.save(model.state_dict(), model_path)

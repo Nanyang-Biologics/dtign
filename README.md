@@ -15,7 +15,7 @@ For installing anaconda on your OS, please refer to [Anaconda Installation](http
 
 Once the anaconda is properly installed, one can create a new virtual environment by entering the following command in terminal:
 ```bash
-conda create rdkit python=3.6 -c rdkit -n rdkit
+conda create rdkit python=3.10 -c rdkit -n rdkit
 conda activate rdkit
 ```
 - Note that `python=3.6` is adopted due to its good compatibility with a wide range of packages in our projects. One can try other versions if no compatibility issues occur.

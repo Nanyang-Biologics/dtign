@@ -1,28 +1,49 @@
-
-# %%
-import os, re
+import os
+import re
 import argparse
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+import json
+import math
+import shutil
+import time
+import pickle
+import subprocess
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
+import torch.multiprocessing
+from torch_geometric.data import Batch
+from torch.optim.lr_scheduler import StepLR
+
 import pandas as pd
-from utils import AverageMeter
-from DTIGN import DTIGN
+import numpy as np
+import scipy
+import scipy.stats as stats
+
+from sklearn.metrics import mean_squared_error
+
+from itertools import zip_longest, cycle
+from tqdm import tqdm
+
+
 from config.config_dict import Config
+from DTIGN import DTIGN
 from aws import S3DataFetcher
 from log.train_logger import TrainLogger
-import numpy as np
+from utils import AverageMeter
 from utils import *
-from sklearn.metrics import mean_squared_error
-from itertools import zip_longest, cycle
+
+# Ensure the correct CUDA device is visible
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 torch.multiprocessing.set_sharing_strategy('file_system')
-from torch_geometric.data import Batch
-from tqdm import tqdm
-import scipy, math, json, shutil, pickle, time
-import torch.nn.functional as F
-import scipy.stats as stats
-from torch.optim.lr_scheduler import StepLR
+
+def get_gpu_info():
+    try:
+        gpu_info = subprocess.check_output("nvidia-smi --query-gpu=gpu_name,driver_version,memory.total --format=csv", shell=True)
+        return gpu_info.decode('utf-8')
+    except Exception as e:
+        return str(e)
 
 def reduction_by_pocket(tensor, pocket_list, device, semi_supervise=False):
     output_tensor, current_index, tensor_shape = torch.tensor([]).to(device), 0, tensor.shape[0]
@@ -123,6 +144,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a model with specified settings.')
     parser.add_argument('--setting', type=str, required=True, help='The setting for the training session')
 
+    start_time = time.time()
     # Parse the arguments
     arguments = parser.parse_args()
 
@@ -146,21 +168,21 @@ if __name__ == '__main__':
     ### Experimental settings
     # start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 3, [], 3, 0, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.95, 100, 32
     if task_id == 'I1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 2, [3], 4, 40, 1, 0, 1e-4, 128, 100, 5, 10, 0.95, 100, 32, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 2, [3], 4, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
     if task_id == 'I2':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 128, 1, 5, 10, 0.95, 100, 32, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
     if task_id == 'I3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 1, [], 1, 40, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.975, 100, 32
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [3], 5, 40, 1, 0, 8e-5, 128, 100, 5, 10, 0.95, 100, 64, 8
     if task_id == 'I4':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 4
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 8
     if task_id == 'I5':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 4
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [4], 5, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
     if task_id == 'E1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 0.9, 2, 8e-5, 128, 50, 5, 10, 0.975, 100, 32, 4
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 5, [], 5, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
     if task_id == 'E2':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads  = 1, [], 5, 40, 1, 0, 1e-4, 128, 1, 5, 10, 0.95, 100, 64, 4
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
     if task_id == 'E3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 4
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
     args['start_checkpoint'] = None
     semi_supervise = False
     save_attention = False
@@ -257,6 +279,7 @@ if __name__ == '__main__':
         logger.info(f"batch samples: {subset_num*batch_size*pocket_num*num_pose}")
         shutil.copy(__file__, logger.get_log_dir())
         result_path = os.path.join(logger.get_model_dir()[:-5], 'result')
+        logger.info(f"result_path: {result_path}")
         # 获取源文件名
         source_file_list = ["DTIGN.py", "DTIGN_HIL.py"]
         for source_file in source_file_list:
@@ -318,8 +341,10 @@ if __name__ == '__main__':
         sample_stds = [dataset.std for dataset in [train_set1, train_set2, train_set3, train_set4, val_to_train_set]]
         total_count = sum(sample_counts)
         # 计算加权平均的均值
+        # English: Calculate the weighted average mean
         weighted_mean = sum(count * mean for count, mean in zip(sample_counts, sample_means)) / total_count
         # 计算加权平均的标准差
+        # English: Calculate the weighted average standard deviation
         weighted_variance = sum(count * (std ** 2) for count, std in zip(sample_counts, sample_stds)) / total_count
         weighted_std = math.sqrt(weighted_variance)
         logger.info(f"train mean: {'{:.4f}'.format(weighted_mean)}")
@@ -389,14 +414,6 @@ if __name__ == '__main__':
             best_condition = (valid_metric_value < running_best_metric.get_best()) if best_type == "min" else (valid_metric_value > running_best_metric.get_best())
             msg = "epoch-%d, mean-%.4f, std-%.4f, train_loss-%.4f, train_rmse-%.4f, valid_rmse-%.4f, valid_pr-%.4f, valid_tau-%.4f, test_rmse-%.4f, test_pr-%.4f, test_tau-%.4f" \
             % (epoch, weighted_mean, weighted_std, epoch_loss, epoch_rmse, valid_rmse, valid_pr, valid_tau, test_rmse, test_pr, test_tau)
-            print("best_condition: ", best_condition)
-            print("warmup_epoch: ", warmup_epoch)
-            print("save_model: ", save_model)
-            print("valid_rmse: ", valid_rmse)
-            print("best_type: ", best_type)
-            print("valid_pr: ", valid_pr)
-            print("valid_metric_value: ", valid_metric_value)
-            print("running_best_metric.get_best(): ", running_best_metric.get_best())
             if best_condition and epoch >= warmup_epoch:
                 running_best_metric.update(valid_metric_value)
                 if save_model:
@@ -433,4 +450,13 @@ if __name__ == '__main__':
         msg = "valid_rmse-%.4f, valid_pr-%.4f, test_rmse-%.4f, test_pr-%.4f, test_tau-%.4f"%(valid_rmse, valid_pr, test_rmse, test_pr, test_tau)
 
         logger.info(msg)
+    end_time = time.time()
+    total_time = end_time - start_time
+    gpu_info = get_gpu_info()
+    logger.info(f"Total time: {total_time}")
+    logger.info(gpu_info)
+    torch.save({
+        'runtime': total_time,
+        'gpu_info': gpu_info
+    }, result_path + '/runtime_info.pt')
 # %%
