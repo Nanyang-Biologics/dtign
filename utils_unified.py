@@ -66,6 +66,9 @@ def init_featurizer(args):
     return args
 
 def load_dataset(args, df):
+    print("df.col: ", df.columns)
+    if 'value' not in df.columns:
+        df['value'] = df['pEC50']
     dataset = MoleculeCSVDataset(df=df,
                                  smiles_to_graph=partial(smiles_to_bigraph, add_self_loop=True),
                                  node_featurizer=args['node_featurizer'],
@@ -298,7 +301,7 @@ def collate_molgraphs_unlabeled(data):
 
 def load_model(exp_configure, model_size_level):
     if exp_configure['model'] == 'GCN':
-        from dgllife.model_injective import GCNPredictor
+        from dgllife.model.model_zoo import GCNPredictor
         exp_configure['model_size_level'] = model_size_level
         if model_size_level == 1:
             exp_configure['gnn_hidden_feats'] = 8
@@ -345,9 +348,9 @@ def load_model(exp_configure, model_size_level):
             dropout=[exp_configure['dropout']] * exp_configure['num_gnn_layers'],
             predictor_hidden_feats=exp_configure['predictor_hidden_feats'],
             predictor_dropout=exp_configure['dropout'],
-            n_tasks=exp_configure['n_tasks'], exp_configure=exp_configure)
+            n_tasks=exp_configure['n_tasks'])
     elif exp_configure['model'] == 'GAT':
-        from dgllife.model_injective import GATPredictor
+        from dgllife.model.model_zoo import GATPredictor
         exp_configure['model_size_level'] = model_size_level
         if model_size_level == 1:
             exp_configure['gnn_hidden_feats'] = 8
@@ -399,10 +402,10 @@ def load_model(exp_configure, model_size_level):
             residuals=[exp_configure['residual']] * exp_configure['num_gnn_layers'],
             predictor_hidden_feats=exp_configure['predictor_hidden_feats'],
             predictor_dropout=exp_configure['dropout'],
-            n_tasks=exp_configure['n_tasks'], exp_configure=exp_configure
+            n_tasks=exp_configure['n_tasks']
         )
     elif exp_configure['model'] == 'Weave':
-        from dgllife.model_injective import WeavePredictor
+        from dgllife.model.model_zoo import WeavePredictor
         exp_configure['model_size_level'] = model_size_level
         if model_size_level == 1:
             exp_configure['gnn_hidden_feats'] = 10
@@ -444,10 +447,9 @@ def load_model(exp_configure, model_size_level):
             graph_feats=exp_configure['graph_feats'],
             gaussian_expand=exp_configure['gaussian_expand'],
             n_tasks=exp_configure['n_tasks'],
-            predictor_hidden_feats=exp_configure['predictor_hidden_feats'], exp_configure=exp_configure
         )
     elif exp_configure['model'] == 'MPNN':
-        from dgllife.model_injective import MPNNPredictor
+        from dgllife.model.model_zoo import MPNNPredictor
         exp_configure['model_size_level'] = model_size_level
         if model_size_level == 1:
             exp_configure['node_out_feats'] = 8
@@ -485,10 +487,9 @@ def load_model(exp_configure, model_size_level):
             num_step_set2set=exp_configure['num_step_set2set'],
             num_layer_set2set=exp_configure['num_layer_set2set'],
             n_tasks=exp_configure['n_tasks'],
-            predictor_hidden_feats=int(exp_configure['node_out_feats']/2), exp_configure=exp_configure
         )
     elif exp_configure['model'] == 'AttentiveFP':
-        from dgllife.model_injective import AttentiveFPPredictor
+        from dgllife.model.model_zoo import AttentiveFPPredictor
         exp_configure['model_size_level'] = model_size_level
         if model_size_level == 1:
             exp_configure['graph_feat_size'] = 10
@@ -523,13 +524,12 @@ def load_model(exp_configure, model_size_level):
             graph_feat_size=exp_configure['graph_feat_size'],
             dropout=exp_configure['dropout'],
             n_tasks=exp_configure['n_tasks'],
-            predictor_hidden_feats=int(exp_configure['graph_feat_size']/2), exp_configure=exp_configure
         )
     
     elif exp_configure['model'] in ['gin_supervised_contextpred', 'gin_supervised_infomax',
                                     'gin_supervised_edgepred', 'gin_supervised_masking']:
-        from dgllife.model_injective import GINPredictor
-        from dgllife.model_injective import load_pretrained
+        from dgllife.model.model_zoo import GINPredictor
+        from dgllife.model.pretrain import load_pretrained
         model = GINPredictor(
             num_node_emb_list=[120, 3],
             num_edge_emb_list=[6, 3],
@@ -538,12 +538,12 @@ def load_model(exp_configure, model_size_level):
             JK=exp_configure['jk'],
             dropout=0.5,
             readout=exp_configure['readout'],
-            n_tasks=exp_configure['n_tasks'], exp_configure=exp_configure
+            n_tasks=exp_configure['n_tasks']
         )
         model.gnn = load_pretrained(exp_configure['model'])
         model.gnn.JK = exp_configure['jk']
     elif exp_configure['model'] == 'NF':
-        from dgllife.model_injective import NFPredictor
+        from dgllife.model.model_zoo import NFPredictor
         exp_configure['model_size_level'] = model_size_level
         if model_size_level == 1:
             exp_configure['gnn_hidden_feats'] = 8
@@ -585,7 +585,7 @@ def load_model(exp_configure, model_size_level):
             dropout=[exp_configure['dropout']] * exp_configure['num_gnn_layers'],
             predictor_hidden_size=exp_configure['predictor_hidden_feats'],
             predictor_batchnorm=exp_configure['batchnorm'],
-            predictor_dropout=exp_configure['dropout'], exp_configure=exp_configure
+            predictor_dropout=exp_configure['dropout']
         )
     else:
         return ValueError("Expect model to be from ['GCN', 'GAT', 'Weave', 'MPNN', 'AttentiveFP', "
@@ -598,7 +598,7 @@ def load_model(exp_configure, model_size_level):
 
 def load_GCN_L_model(exp_configure, model_size_level):
     if exp_configure['model'] == 'GCN':
-        from dgllife.model_injective import GCNPredictor_MLP
+        from dgllife.model.model_zoo import GCNPredictor_MLP
         exp_configure['model_size_level'] = model_size_level
         if model_size_level == 1:
             exp_configure['gnn_hidden_feats'] = 8
@@ -790,7 +790,7 @@ def predict(args, model, bg, feature_flag=False,last_layer=False,use_classifier=
     bg = bg.to(args['device'])
     if args['edge_featurizer'] is None:
         node_feats = bg.ndata.pop('h').to(args['device'])
-        return model(bg, node_feats,feature_flag=feature_flag,last_layer=last_layer,use_classifier=use_classifier)
+        return model(bg, node_feats)
     elif args['bond_featurizer_type'] == 'pre_train':
         node_feats = [
             bg.ndata.pop('atomic_number').to(args['device']),
@@ -800,10 +800,10 @@ def predict(args, model, bg, feature_flag=False,last_layer=False,use_classifier=
             bg.edata.pop('bond_type').to(args['device']),
             bg.edata.pop('bond_direction_type').to(args['device'])
         ]
-        return model(bg, node_feats, edge_feats,feature_flag=feature_flag,last_layer=last_layer,use_classifier=use_classifier)
+        return model(bg, node_feats, edge_feats)
     else:
         node_feats = bg.ndata.pop('h').to(args['device'])
         edge_feats = bg.edata.pop('e').to(args['device'])
-        return model(bg, node_feats, edge_feats,feature_flag=feature_flag,last_layer=last_layer,use_classifier=use_classifier)
+        return model(bg, node_feats, edge_feats)
 
 
