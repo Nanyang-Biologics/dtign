@@ -1,9 +1,14 @@
 {
-    "lr": 1e-7,
-    "weight_decay": 0,
-    "patience": 30,
-    "batch_size": 32,
-    "jk": "last",
-    "readout": "sum"
-  }
-  
+  "lr": 5e-05,
+  "weight_decay": 0.0001,
+  "patience": 30,
+  "batch_size": 32,
+  "jk": "concat",
+  "readout": "attention",
+  "mean": 5.691100306735681,
+  "std": 1.2761466859228088,
+  "model": "gin_supervised_contextpred",
+  "n_tasks": 1,
+  "atom_featurizer_type": "pre_train",
+  "bond_featurizer_type": "pre_train"
+}

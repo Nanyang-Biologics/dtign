@@ -35,7 +35,7 @@ from utils import AverageMeter
 from utils import *
 
 # Ensure the correct CUDA device is visible
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+# os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 def get_gpu_info():
@@ -158,6 +158,12 @@ if __name__ == '__main__':
     graph_type = args.get("graph_type")
     save_model = args.get("save_model")
     total_batch_size = args.get("batch_size")
+    if arguments.setting == 'I3':
+        total_batch_size = 72
+    if arguments.setting == 'I4':
+        total_batch_size = 48
+    if arguments.setting == 'I5':
+        total_batch_size = 48
     data_root = args.get('data_root')
     ground_root = args.get('ground_root')
     epochs = args.get('epochs')
@@ -170,21 +176,21 @@ if __name__ == '__main__':
     ### Experimental settings
     # start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 3, [], 3, 0, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.95, 100, 32
     if task_id == 'I1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 2, [3], 4, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 2, [3], 4, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 64, 8
     if task_id == 'I2':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 64, 8
     if task_id == 'I3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [3], 5, 40, 1, 0, 8e-5, 128, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 128, 100, 5, 10, 0.95, 100, 16, 2
     if task_id == 'I4':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 3, [], 3, 0, 1, 4, 8e-5, 128, 100, 5, 10, 0.95, 100, 32, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 4, 8e-5, 128, 60, 5, 10, 0.95, 100, 16, 2
     if task_id == 'I5':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [4], 5, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 256, 60, 5, 10, 0.95, 100, 16, 2
     if task_id == 'E1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 5, [], 5, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 16, 2
     if task_id == 'E2':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 16, 2
     if task_id == 'E3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 1, 40, 1, 0, 1e-4, 256, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 128, 100, 5, 10, 0.95, 100, 16, 2
     args['start_checkpoint'] = None
     semi_supervise = False
     save_attention = False

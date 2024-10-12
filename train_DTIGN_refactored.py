@@ -25,7 +25,7 @@ from aws import S3DataFetcher
 from log.train_logger import TrainLogger
 
 # Set CUDA device and multiprocessing strategy
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 def reduction_by_pocket(tensor, pocket_list, device, semi_supervise=False):

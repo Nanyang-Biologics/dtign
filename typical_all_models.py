@@ -2,7 +2,7 @@ import os
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
 # -*- coding: utf-8 -*-
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -444,17 +444,20 @@ if __name__ == '__main__':
         args['early_stop_mode'] = 'lower'
     print('Early_stop_mode:', args['early_stop_mode'])
     
-    model_list = ['GCN', 'GAT', 'Weave', 'MPNN', 'AttentiveFP',
-                   'gin_supervised_contextpred', 'NF'] # python typical_all_models.py
+    # model_list = ['GCN', 'GAT', 'Weave', 'MPNN', 'AttentiveFP',
+    #                'gin_supervised_contextpred', 'NF'] # python typical_all_models.py
     
-    model_size_dict = {'GCN': 8, 'GAT': 3, 'Weave': 2, 'MPNN': 2, 'AttentiveFP': 5, 'NF': 6, 'gin_supervised_contextpred': 1}
+    model_list = ['GCN', 'AttentiveFP']
+    # model_size_dict = {'GCN': 8, 'GAT': 3, 'Weave': 2, 'MPNN': 2, 'AttentiveFP': 5, 'NF': 6, 'gin_supervised_contextpred': 1}
+    model_size_dict = {'GCN': 2, 'AttentiveFP': 1}
     dataset_perfix = './data/'
     args['result_prefix'] = './baseline/'
     # task_dict = {0: ('CHEMBL202', 'pIC50'), 1: ('CHEMBL235', 'pEC50'), 2: ('CHEMBL279', 'pIC50'), 3: ('CHEMBL2971', 'pIC50'), 4: ('CHEMBL333', 'pIC50'), 5: ('CHEMBL3820', 'pEC50'), 6: ('CHEMBL3976', 'pIC50'), 7: ('CHEMBL4422', 'pEC50')}
     task_dict = {0: ('CHEMBL202', 'pIC50'), 1: ('CHEMBL279', 'pIC50'), 2: ('CHEMBL2971', 'pIC50'), 3: ('CHEMBL333', 'pIC50'), 4: ('CHEMBL3820', 'pEC50'), 5: ('CHEMBL3976', 'pIC50'), 6: ('CHEMBL4422', 'pEC50')}
     new_column_names =new_column_names = {'pIC50': 'value', 'SMILES': 'smiles'}
     log = True
-    random_seed = 999
+    # TODO: change random_seed between 0,1,2,3,4, before 999
+    random_seed = 0
     max_val_num = 200
     for model in model_list:
         args['model'] = model

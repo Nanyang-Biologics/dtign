@@ -164,6 +164,7 @@ cython_debug/
 #.idea/
 
 /data
+/data1
 /results
 /model
 
