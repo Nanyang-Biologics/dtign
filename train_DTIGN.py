@@ -105,6 +105,8 @@ def val(model, dataloader, device, epoch, attention_dict, save_attention=False, 
     # 根据随机抽取的索引，从 pred 数组中取出对应元素组成一个新的 NumPy 数组
     pred = pred[random_indices]
     label = label[random_indices]
+    print("pred: ", pred)
+    print("label: ", label)
     
     coff = np.corrcoef(pred, label)[0, 1]
     rmse = np.sqrt(mean_squared_error(label, pred))
@@ -438,7 +440,6 @@ if __name__ == '__main__':
                     break
 
         # final testing
-        print("best_model_list: ", best_model_list)
         load_model_dict(model, best_model_list[-1])
         valid_rmse, valid_pr, valid_tau, val_attention_dict = val(model, valid_loader, device, epoch, val_attention_dict, save_attention=save_attention)
         test_rmse, test_pr, test_tau, test_attention_dict = val(model, test_loader, device, epoch, test_attention_dict, save_attention=save_attention)
@@ -459,4 +460,3 @@ if __name__ == '__main__':
         'runtime': total_time,
         'gpu_info': gpu_info
     }, result_path + '/runtime_info.pt')
-# %%

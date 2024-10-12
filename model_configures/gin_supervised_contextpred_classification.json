@@ -1,0 +1,12 @@
+{
+    "lr": 5e-5,
+    "weight_decay": 1e-4,
+    "dropout": 0.05,
+    "num_layers": 6,
+    "emb_dim": 256,
+    "patience": 20,
+    "batch_size": 64,
+    "jk": "concat",
+    "readout": "attention"
+  }
+  

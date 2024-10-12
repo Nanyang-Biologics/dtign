@@ -129,6 +129,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.dtign
+dtign/
 
 # Spyder project settings
 .spyderproject
@@ -164,3 +166,6 @@ cython_debug/
 /data
 /results
 /model
+
+.baseline
+baseline/
