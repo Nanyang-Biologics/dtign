@@ -160,11 +160,11 @@ if __name__ == '__main__':
     save_model = args.get("save_model")
     total_batch_size = args.get("batch_size")
     if arguments.setting == 'I3':
-        total_batch_size = 72
+        total_batch_size = 1800
     if arguments.setting == 'I4':
-        total_batch_size = 48
+        total_batch_size = 1800
     if arguments.setting == 'I5':
-        total_batch_size = 48
+        total_batch_size = 1800
     data_root = args.get('data_root')
     ground_root = args.get('ground_root')
     epochs = args.get('epochs')
