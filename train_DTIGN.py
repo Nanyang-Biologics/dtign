@@ -66,6 +66,7 @@ def val(model, dataloader, device, epoch, attention_dict, save_attention=False, 
     model.eval()
     predict_list, label_list = [], []
     predict_dict, label_dict = {}, {}
+    print("dataloaders: ", dataloader)
     for data in dataloader:
         data = data.to(device)
         with torch.no_grad():
@@ -176,21 +177,21 @@ if __name__ == '__main__':
     ### Experimental settings
     # start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count = 3, [], 3, 0, 0.9, 2, 8e-5, 128, 100, 5, 10, 0.95, 100, 32
     if task_id == 'I1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 2, [3], 4, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads, gconv_layer = 2, [3], 4, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 64, 8, 5
     if task_id == 'I2':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 64, 8
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads, gconv_layer = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 64, 8, 5
     if task_id == 'I3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 128, 100, 5, 10, 0.95, 100, 16, 2
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads, gconv_layer = 1, [], 5, 40, 1, 0, 1e-4, 128, 100, 5, 10, 0.95, 100, 16, 2, 5
     if task_id == 'I4':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 4, 8e-5, 128, 60, 5, 10, 0.95, 100, 16, 2
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads, gconv_layer = 1, [], 5, 40, 1, 4, 8e-5, 128, 60, 5, 10, 0.95, 100, 16, 2, 5
     if task_id == 'I5':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 256, 60, 5, 10, 0.95, 100, 16, 2
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads, gconv_layer = 1, [], 5, 40, 1, 0, 1e-4, 256, 60, 5, 10, 0.95, 100, 16, 2, 5
     if task_id == 'E1':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 16, 2
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads, gconv_layer = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 16, 2, 5
     if task_id == 'E2':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 16, 2
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads, gconv_layer = 1, [], 5, 40, 1, 0, 1e-4, 64, 100, 5, 10, 0.95, 100, 16, 2, 5
     if task_id == 'E3':
-        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads = 1, [], 5, 40, 1, 0, 1e-4, 128, 100, 5, 10, 0.95, 100, 16, 2
+        start_fold, skip_fold, stop_fold, warmup_epoch, val_rate, seed, learning_rate, hidden_dim, val_num, subset_num, step_size, gamma, early_stop_epoch, D_count, num_heads, gconv_layer = 1, [], 5, 40, 1, 0, 1e-4, 128, 100, 5, 10, 0.95, 100, 16, 2, 5
     args['start_checkpoint'] = None
     semi_supervise = False
     save_attention = False
@@ -305,7 +306,7 @@ if __name__ == '__main__':
         running_best_metric.reset
         # TODO: change to cuda later
         device = torch.device('cuda') 
-        model = DTIGN(node_dim=35, bond_dim=10, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count).to(device)
+        model = DTIGN(node_dim=35, bond_dim=10, gconv_layer=gconv_layer, hidden_dim=hidden_dim, num_pose=num_pose, dropout=dropout, self_attention=True, graph_type=graph_type, D_count=D_count).to(device)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=10**(-4.3))
         scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
         model.train()
